@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: fms_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: vishalgi8
+      POSTGRES_PASSWORD: root123
     ports:
       - "5432:5432"
     volumes:
@@ -15,7 +15,7 @@ services:
   auth_service:
     build: ./auth_service
     environment:
-      DATABASE_URL: postgresql://postgres:vishalgi8@db:5432/fms_db
+      DATABASE_URL: postgresql://postgres:root123@db:5432/fms_db
       AUTH_SECRET_KEY: CHANGE_THIS_SECRET
     ports:
       - "8001:8001"

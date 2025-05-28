@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 # Expect DATABASE_URL in the form:
 #   postgresql://username:password@host:port/dbname
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:vishalgi8@localhost:5432/fms_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:root123@localhost:5432/fms_db")
 
 # Create SQLAlchemy engine pointing to PostgreSQL
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
