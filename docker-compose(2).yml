@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:17
+    container_name: fms_postgres
+    environment:
+      POSTGRES_USER: fms_user
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: fms_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  payables-service:
+    build:
+      context: ./payables-service    # ✅ fixed path
+    container_name: payables_service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - ledger_db
+      - ledger-service
+    environment:
+      - DATABASE_URL=postgresql://fms_user:12345@db:5432/fms_db
+
+  ledger_db:
+    image: postgres:17
+    container_name: ledger_db
+    restart: always
+    environment:
+      POSTGRES_USER: ledger_user
+      POSTGRES_PASSWORD: ledger_pass
+      POSTGRES_DB: ledger_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ledger_pgdata:/var/lib/postgresql/data
+
+  ledger-service:
+    build:
+      context: ./ledger-service
+    container_name: ledger-service
+    depends_on:
+      - ledger_db
+    environment:
+      - DATABASE_URL=postgresql://ledger_user:ledger_pass@ledger_db:5432/ledger_db
+    ports:
+      - "8001:8000"
+
+volumes:
+  postgres_data:
+  ledger_pgdata:
