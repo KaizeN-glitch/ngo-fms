@@ -11,9 +11,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  auth_service:
+    build:
+      context: ./auth_service
+    container_name: auth_service
+    ports:
+      - "8002:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://fms_user:12345@db:5432/fms_db
+      - JWT_SECRET_KEY=your-secret-key-here
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+
   payables-service:
     build:
-      context: ./payables-service    # ✅ fixed path
+      context: ./payables-service
     container_name: payables_service
     ports:
       - "8000:8000"
@@ -21,8 +35,13 @@ services:
       - db
       - ledger_db
       - ledger-service
+      - auth_service
     environment:
       - DATABASE_URL=postgresql://fms_user:12345@db:5432/fms_db
+      - JWT_SECRET_KEY=your-secret-key-here
+      - JWT_ALGORITHM=HS256
+      - SERVICE_SECRET=your-service-secret-here
+      - AUTH_SERVICE_URL=http://auth_service:8000
 
   ledger_db:
     image: postgres:17
@@ -45,6 +64,8 @@ services:
       - ledger_db
     environment:
       - DATABASE_URL=postgresql://ledger_user:ledger_pass@ledger_db:5432/ledger_db
+      - SERVICE_SECRET=your-service-secret-here
+      - JWT_ALGORITHM=HS256
     ports:
       - "8001:8000"
 
