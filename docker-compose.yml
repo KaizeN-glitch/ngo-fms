@@ -38,7 +38,7 @@ services:
       - ledger_service  # Added dependency on ledger_service
     environment:
       - DATABASE_URL=postgresql://fms_user:12345@db:5432/fms_db
-      - JWT_SECRET_KEY=your-payables-secret-key
+      - JWT_SECRET_KEY=your-auth-secret-key   # <--- match with auth_service
       - SERVICE_SECRET=shared-service-secret
       - AUTH_SERVICE_URL=http://auth_service:8000
       - LEDGER_SERVICE_URL=http://ledger_service:8000  # Added ledger service URL
@@ -53,6 +53,7 @@ services:
       - db
     environment:
       - DATABASE_URL=postgresql://fms_user:12345@db:5432/fms_db
+      - JWT_SECRET_KEY=your-auth-secret-key   # <--- match with auth_service
       - SERVICE_SECRET=shared-service-secret
       - JWT_ALGORITHM=HS256
     ports:
@@ -70,7 +71,7 @@ services:
       - AUTH_SERVICE_URL=http://auth_service:8000
       - PAYABLES_SERVICE_URL=http://payables_service:8000
       - LEDGER_SERVICE_URL=http://ledger_service:8000
-      - JWT_SECRET_KEY=your-auth-secret-key
+      - JWT_SECRET_KEY=your-auth-secret-key   # <--- match with auth_service
     ports:
       - "8000:8000"
 
