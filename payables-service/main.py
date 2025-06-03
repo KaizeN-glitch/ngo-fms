@@ -4,7 +4,7 @@ from database import engine, SessionLocal
 import models, schemas
 from sqlalchemy.exc import IntegrityError
 import requests
-from typing import Union, Optional
+from typing import Union, Optional, List
 import jwt
 from datetime import datetime, timedelta
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -128,3 +128,26 @@ async def create_invoice(
     db.refresh(db_invoice)
 
     return db_invoice
+
+@app.get("/invoices", response_model=List[schemas.InvoiceResponse])
+async def get_invoices(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    token_payload: dict = Depends(verify_token)
+):
+    """Get all invoices with pagination"""
+    invoices = db.query(models.Invoice).offset(skip).limit(limit).all()
+    return invoices
+
+@app.get("/invoices/{invoice_id}", response_model=schemas.InvoiceResponse)
+async def get_invoice(
+    invoice_id: str,
+    db: Session = Depends(get_db),
+    token_payload: dict = Depends(verify_token)
+):
+    """Get a specific invoice by ID"""
+    invoice = db.query(models.Invoice).filter(models.Invoice.invoice_id == invoice_id).first()
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return invoice

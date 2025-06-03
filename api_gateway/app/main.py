@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from app.routes import router
-from app import dependencies
 
 app = FastAPI(title="API Gateway")
 
