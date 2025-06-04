@@ -8,7 +8,7 @@ import time
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
-DATABASE_URL = "postgresql://ledger_user:ledger_pass@ledger_db:5432/ledger_db"
+DATABASE_URL = "postgresql://fms_user:12345@db:5432/fms_db"
 
 max_retries = 10
 retry_interval = 5  # seconds

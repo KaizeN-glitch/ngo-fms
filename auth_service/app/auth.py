@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import os
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-JWT_SECRET = os.getenv("JWT_SECRET", "u8$!kLz@31pQwErTyUiOpAsDfGhJkLzXcVbNm1234567890")
+JWT_SECRET = os.getenv("JWT_SECRET", "your-auth-secret-key")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

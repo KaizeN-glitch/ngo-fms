@@ -66,15 +66,14 @@ def register_user(
 
 @app.post("/auth/login", response_model=schemas.Token)
 def login_for_access_token(
-    form_data: schemas.UserCreate,  # role_name in payload is ignored here
+    form_data: schemas.UserLogin,  # Changed from UserCreate to new UserLogin schema
     db: Session = Depends(dependencies.get_db),
 ):
     """
     Login endpoint. Expects payload:
       {
         "username": "<string>",
-        "password": "<string>",
-        "role_name": "<ignored on login>"
+        "password": "<string>"
       }
     Returns: { "access_token": "<JWT>", "token_type": "bearer" }
     """
@@ -86,7 +85,6 @@ def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Issue a new JWT, embedding the user’s role_name
     access_token = dependencies.create_access_token(
         data={"sub": user.username, "role_name": user.role.name}
     )

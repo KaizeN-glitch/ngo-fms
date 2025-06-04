@@ -24,7 +24,7 @@ AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth_service:8000")
 security = HTTPBearer()
 
 # URL of Ledger Service (update as per your actual setup)
-LEDGER_SERVICE_URL = "http://ledger-service:8000/api/v1/ledger/journal-entries"
+LEDGER_SERVICE_URL = "http://ledger_service:8000/api/v1/ledger/journal-entries"
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)

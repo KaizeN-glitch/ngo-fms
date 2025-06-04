@@ -12,7 +12,7 @@ from . import crud, models, schemas
 from .database import SessionLocal
 
 # Must match the Payables Service's SECRET_KEY / ALGORITHM
-SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "CHANGE_THIS_SECRET")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_THIS_SECRET") # Changed from AUTH_SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

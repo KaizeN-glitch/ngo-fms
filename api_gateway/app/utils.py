@@ -4,7 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import os
 
 security = HTTPBearer()
-JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_SECRET = os.getenv("JWT_SECRET_KEY") # Changed from JWT_SECRET
 
 def validate_token(credentials: HTTPAuthorizationCredentials = Security(security)) -> str:
     try:

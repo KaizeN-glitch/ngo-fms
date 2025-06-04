@@ -41,13 +41,13 @@ services:
       - JWT_SECRET_KEY=your-auth-secret-key   # <--- match with auth_service
       - SERVICE_SECRET=shared-service-secret
       - AUTH_SERVICE_URL=http://auth_service:8000
-      - LEDGER_SERVICE_URL=http://ledger_service:8000  # Added ledger service URL
+      - LEDGER_SERVICE_URL=http://ledger_service:8000  # Corrected hostname
     ports:
       - "8002:8000"
 
   ledger_service:
     build:
-      context: ./ledger-service  # Changed from ledger_service to ledger-service
+      context: ./ledger_service  # Changed from ledger_service to ledger-service
     container_name: ledger_service
     depends_on:
       - db
