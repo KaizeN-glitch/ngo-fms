@@ -30,8 +30,8 @@ async def verify_service_token(credentials: HTTPAuthorizationCredentials = Depen
         payload = jwt.decode(token, SERVICE_SECRET, algorithms=[ALGORITHM])
         if datetime.fromtimestamp(payload['exp']) < datetime.now():
             raise HTTPException(status_code=401, detail="Service token has expired")
-        if payload.get('service') not in ['payables-service']:  # Add other trusted services here
-            raise HTTPException(status_code=403, detail="Unauthorized service")
+        if not payload.get('service') and payload.get('role_name') not in ["Admin", "Accountant", "User"]:
+            raise HTTPException(status_code=403, detail="Unauthorized service or user")
         return payload
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid service token")
