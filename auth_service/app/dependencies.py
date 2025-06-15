@@ -49,11 +49,12 @@ def decode_access_token(token: str) -> schemas.TokenData:
         raise credentials_exception
 
 def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[Session, Depends(get_db)],
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
 ) -> models.User:
     token_data = decode_access_token(token)
     user = crud.get_user_by_username(db, token_data.username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from database import engine, SessionLocal
 import models, schemas
@@ -75,9 +75,12 @@ async def create_invoice(
     if invoice.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
 
-    # Set initial status
+    user_email = token_payload.get("sub")
+
+    # Set initial status and inject created_by from token
     invoice_data = invoice.dict()
     invoice_data['status'] = "Pending Posting"
+    invoice_data['created_by'] = user_email
 
     # Save invoice to database
     db_invoice = models.Invoice(**invoice_data)
@@ -108,14 +111,12 @@ async def create_invoice(
     }
 
     try:
-        # Make API call to Ledger Service with service token
         headers = {
             "Authorization": f"Bearer {get_service_token()}"
         }
         response = requests.post(LEDGER_SERVICE_URL, json=journal_entry, headers=headers)
         response.raise_for_status()
     except requests.RequestException as e:
-        # Do not update status if ledger call fails
         return {
             "invoice_id": db_invoice.invoice_id,
             "message": "Invoice created, but failed to post journal entry.",
@@ -136,8 +137,14 @@ async def get_invoices(
     db: Session = Depends(get_db),
     token_payload: dict = Depends(verify_token)
 ):
-    """Get all invoices with pagination"""
-    invoices = db.query(models.Invoice).offset(skip).limit(limit).all()
+    user_role = token_payload.get("role_name", "").lower()
+    user_email = token_payload.get("sub")
+
+    if user_role == "volunteer":
+        invoices = db.query(models.Invoice).filter(models.Invoice.created_by == user_email).offset(skip).limit(limit).all()
+    else:
+        invoices = db.query(models.Invoice).offset(skip).limit(limit).all()
+
     return invoices
 
 @app.get("/invoices/{invoice_id}", response_model=schemas.InvoiceResponse)
@@ -146,8 +153,14 @@ async def get_invoice(
     db: Session = Depends(get_db),
     token_payload: dict = Depends(verify_token)
 ):
-    """Get a specific invoice by ID"""
+    user_role = token_payload.get("role_name", "").lower()
+    user_email = token_payload.get("sub")
+
     invoice = db.query(models.Invoice).filter(models.Invoice.invoice_id == invoice_id).first()
-    if invoice is None:
+    if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
+
+    if user_role == "volunteer" and invoice.created_by != user_email:
+        raise HTTPException(status_code=403, detail="Access denied to this invoice")
+
     return invoice

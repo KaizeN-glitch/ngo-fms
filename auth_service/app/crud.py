@@ -6,6 +6,9 @@ from datetime import datetime, timedelta
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
 def get_role_by_name(db: Session, name: str) -> models.Role | None:
     return db.query(models.Role).filter(models.Role.name == name).first()
 
