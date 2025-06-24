@@ -22,9 +22,11 @@ class Invoice(Base):
     payment_status = Column(String, nullable=False)
     created_by = Column(String, nullable=False)
     status = Column(String, default="Pending Posting")
-    expense_account: str
     expense_account = Column(String)
+    expense_account_code = Column(String, nullable=True)
     payable_account = Column(String, nullable=True)
+    payable_account_code = Column(String, nullable=True)
+    project_id = Column(String, nullable=True)
 
     def __repr__(self):
         return f"<Invoice(id={self.invoice_id}, vendor={self.vendor_name}, amount={self.amount})>"

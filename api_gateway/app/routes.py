@@ -72,3 +72,10 @@ async def get_invoice(invoice_id: str, token: str = Depends(validate_token)):
             raise HTTPException(status_code=502, detail=f"Payables service unreachable: {e}")
         except httpx.HTTPStatusError as e:
             raise HTTPException(status_code=e.response.status_code, detail=e.response.json())
+
+@router.get("/projects/{project_id}/transactions")
+async def get_project_transactions(project_id: str):
+    PROJECTS_SERVICE_URL = os.getenv("PROJECTS_SERVICE_URL", "http://projects_service:8000")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{PROJECTS_SERVICE_URL}/projects/{project_id}/transactions")
+        return response.json()

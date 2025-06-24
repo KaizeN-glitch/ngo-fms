@@ -5,7 +5,7 @@ from app.crud import get_password_hash
 from . import models, schemas, crud, dependencies
 from .database import SessionLocal, engine
 
-# Create all tables if they don’t exist yet (roles + users)
+# Create all tables if they don't exist yet (roles + users)
 models.Base.metadata.create_all(bind=engine)
 
 from fastapi import Security
@@ -35,17 +35,6 @@ def update_user_role(
     role = db.query(models.Role).filter(models.Role.name == new_role).first()
     if not role:
         raise HTTPException(status_code=404, detail="Target role not found")
-
-    # ✅ If assigning Admin role, ensure no one else has it
-    if new_role.lower() == "admin":
-        existing_admin = (
-            db.query(models.User)
-            .join(models.Role)
-            .filter(models.Role.name == "Admin", models.User.username != username)
-            .first()
-        )
-        if existing_admin:
-            raise HTTPException(status_code=400, detail="Only one Admin is allowed at a time")
 
     # ✅ Update role
     user.role_id = role.role_id
@@ -117,7 +106,7 @@ def register_user(
     if existing:
         raise HTTPException(status_code=400, detail="Username already registered")
 
-    # 2. Create the user (ValueError if role_name doesn’t exist)
+    # 2. Create the user (ValueError if role_name doesn't exist)
     try:
         user = crud.create_user(db, user_in.username, user_in.password, user_in.role_name)
     except ValueError as e:

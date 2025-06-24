@@ -82,6 +82,12 @@ async def create_invoice(
     invoice_data['status'] = "Pending Posting"
     invoice_data['created_by'] = user_email
 
+    # Accept and store expense_account_code and payable_account_code if not present
+    if not invoice_data.get('expense_account_code'):
+        invoice_data['expense_account_code'] = invoice.expense_account
+    if not invoice_data.get('payable_account_code'):
+        invoice_data['payable_account_code'] = invoice.payable_account
+
     # Save invoice to database
     db_invoice = models.Invoice(**invoice_data)
     db.add(db_invoice)
@@ -99,13 +105,15 @@ async def create_invoice(
                 "account": invoice.expense_account,
                 "type": "debit",
                 "amount": invoice.amount,
-                "description": f"Invoice {invoice.invoice_id} expense"
+                "description": f"Invoice {invoice.invoice_id} expense",
+                "project_id": invoice.project_id
             },
             {
                 "account": invoice.payable_account,
                 "type": "credit",
                 "amount": invoice.amount,
-                "description": f"Invoice {invoice.invoice_id} payable"
+                "description": f"Invoice {invoice.invoice_id} payable",
+                "project_id": invoice.project_id
             }
         ]
     }
@@ -138,14 +146,16 @@ async def get_invoices(
     token_payload: dict = Depends(verify_token)
 ):
     user_role = token_payload.get("role_name", "").lower()
-    user_email = token_payload.get("sub")
-
-    if user_role == "volunteer":
-        invoices = db.query(models.Invoice).filter(models.Invoice.created_by == user_email).offset(skip).limit(limit).all()
-    else:
+    if user_role not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=403, detail="Only admin and superadmin can access this endpoint")
+    try:
         invoices = db.query(models.Invoice).offset(skip).limit(limit).all()
-
-    return invoices
+        return invoices
+    except Exception as e:
+        import traceback
+        print("Error in /invoices:", e)
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/invoices/{invoice_id}", response_model=schemas.InvoiceResponse)
 async def get_invoice(

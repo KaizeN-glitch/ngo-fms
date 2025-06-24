@@ -9,3 +9,4 @@ class LedgerEntry(Base):
     type = Column(Enum("debit", "credit", name="entry_type"), nullable=False)
     amount = Column(Float, nullable=False)
     description = Column(String, nullable=True)
+    project_id = Column(String, nullable=True)

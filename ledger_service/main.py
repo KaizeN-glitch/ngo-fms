@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Query
 from sqlalchemy.orm import Session
 from ledger_models import Base, LedgerEntry
 from ledger_schemas import JournalEntryRequest, JournalEntryResponse
@@ -10,6 +10,7 @@ from datetime import datetime
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import os
 from dotenv import load_dotenv
+import traceback
 
 # Load environment variables
 load_dotenv()
@@ -56,8 +57,8 @@ async def create_journal_entry(
     if debit.amount != credit.amount:
         raise HTTPException(status_code=400, detail="Debit and credit amounts must match")
 
-    db_debit = LedgerEntry(account=debit.account, type="debit", amount=debit.amount, description=debit.description)
-    db_credit = LedgerEntry(account=credit.account, type="credit", amount=credit.amount, description=credit.description)
+    db_debit = LedgerEntry(account=debit.account, type="debit", amount=debit.amount, description=debit.description, project_id=getattr(debit, "project_id", None))
+    db_credit = LedgerEntry(account=credit.account, type="credit", amount=credit.amount, description=credit.description, project_id=getattr(credit, "project_id", None))
 
     db.add_all([db_debit, db_credit])
     db.commit()
@@ -71,3 +72,42 @@ async def get_journal_entries(
 ):
     entries = db.query(LedgerEntry).all()
     return entries
+
+@app.get("/transactions", response_model=List[EntryOut])
+async def get_transactions(
+    project_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    token_payload: dict = Depends(verify_service_token)
+):
+    query = db.query(LedgerEntry)
+    if project_id:
+        query = query.filter(LedgerEntry.project_id == project_id)
+    return query.all()
+
+@app.get("/api/v1/ledger/transactions")
+async def get_transactions(
+    project_id: str,
+    db: Session = Depends(get_db),
+    token_payload: dict = Depends(verify_service_token)
+):
+    """Get all transactions for a specific project"""
+    try:
+        transactions = db.query(LedgerEntry).filter(
+            LedgerEntry.project_id == project_id
+        ).all()
+        
+        if not transactions:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No transactions found for project {project_id}"
+            )
+        return transactions
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("Error in get_transactions:", e)
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving transactions: {str(e)}"
+        )

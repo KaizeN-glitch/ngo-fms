@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import date
 from enum import Enum
+from typing import Optional
 
 # Enum for invoice status
 class InvoiceStatusEnum(str, Enum):
@@ -20,6 +21,9 @@ class InvoiceCreate(BaseModel):
     payment_status: str
     expense_account: str
     payable_account: str
+    project_id: Optional[str] = None
+    expense_account_code: Optional[str] = None
+    payable_account_code: Optional[str] = None
 
 # Response schema including extra fields injected by backend
 class InvoiceResponse(BaseModel):
@@ -36,9 +40,12 @@ class InvoiceResponse(BaseModel):
     status: InvoiceStatusEnum
     expense_account: str
     payable_account: str
+    project_id: Optional[str] = None
+    expense_account_code: Optional[str] = None
+    payable_account_code: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Error response schema
 class InvoiceErrorResponse(BaseModel):
